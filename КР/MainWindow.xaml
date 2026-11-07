@@ -5,8 +5,109 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:КР"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Университетская система синхронизации" Height="750" Width="1200">
+    <Window.Resources>
+        <!-- Цветовая схема-->
+        <SolidColorBrush x:Key="PrimaryColor" Color="#1976D2"/>
+        <SolidColorBrush x:Key="MouseOverButton" Color="#1565C0"/>
+        <SolidColorBrush x:Key="PressedButton" Color="#0D47A1"/>
+        <SolidColorBrush x:Key="SecondaryColor" Color="#424242"/>
+        <SolidColorBrush x:Key="AccentColor" Color="#FF9800"/>
+        <SolidColorBrush x:Key="SuccessColor" Color="#4CAF50"/>
+        <SolidColorBrush x:Key="SuccessMouseColor" Color="#2E7D32"/>
+        <SolidColorBrush x:Key="BackButtonColor" Color="#757575"/>
+        <SolidColorBrush x:Key="BackDelColor" Color="#D32F2F"/>
+        <SolidColorBrush x:Key="MouseDelColor" Color="#C62828"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#BDBDBD"/>
+        
+        
+        <!-- Стили для кнопок -->
+        <Style x:Key="ModernButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{StaticResource MouseOverButton}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="{StaticResource PressedButton}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="Background" Value="{StaticResource BackButtonColor}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource SecondaryColor}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
 
+        <Style x:Key="DeleteButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="Background" Value="{StaticResource BackDelColor}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource MouseDelColor}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="Background" Value="{StaticResource SuccessColor}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource SuccessMouseColor}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <!-- Стили TextBox -->
+        <Style x:Key="ModernTextBox" TargetType="TextBox">
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="5,0"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Стили для DataGrid-->
+        <Style x:Key="ModernDataGrid" TargetType="DataGrid">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="RowHeight" Value="35"/>
+            <Setter Property="ColumnHeaderHeight" Value="40"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+        </Style>
+    </Window.Resources>
+    
+        <Grid>
+        
     </Grid>
 </Window>
