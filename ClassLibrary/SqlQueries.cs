@@ -51,6 +51,7 @@ namespace ClassLibrary
                                      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                                      text TEXT NOT NULL,
                                      date DATE NOT NULL DEFAULT CURRENT_DATE,
+                                     scope VARCHAR(50) NOT NULL DEFAULT 'ALL',
                                      status VARCHAR(50) NOT NULL DEFAULT 'active',
                                      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
                                      updated_at TIMESTAMP NOT NULL DEFAULT NOW());
@@ -96,7 +97,7 @@ namespace ClassLibrary
         /// <summary>
         /// Чтение приказов
         /// </summary>
-        public const string Orders = @"SELECT id, date AS ""Дата"", text AS ""Текст"", status AS ""Статус"", created_at AS ""Создан"" FROM orders ORDER BY date DESC";
+        public const string Orders = @"SELECT id, date AS ""Дата"", text AS ""Текст"", scope AS ""Адресат"", status AS ""Статус"", created_at AS ""Создан"" FROM orders ORDER BY date DESC";
 
         /// <summary>
         /// Вставка факултета
@@ -126,7 +127,7 @@ namespace ClassLibrary
         /// <summary>
         /// Вставка приказа
         /// </summary>
-        public const string InsertOrder = "INSERT INTO orders (text, date, status) VALUES (@t, @d, @st)";
+        public const string InsertOrder = "INSERT INTO orders (text, date, scope, status) VALUES (@t, @d, @sc, @st)";
 
         /// <summary>
         /// Методы удаления строк
@@ -161,7 +162,8 @@ namespace ClassLibrary
 
         public const string LoadGradesSince = @"SELECT id, student_id, subject, grade, date, teacher, created_at, updated_at FROM grades WHERE updated_at > @since";
 
-        public const string LoadOrdersSince = @"SELECT id, text, date, status, created_at, updated_at FROM orders WHERE updated_at > @since";
+        public const string LoadOrdersSince = @"SELECT id, text, date, scope, status, created_at, updated_at FROM orders WHERE updated_at > @since 
+                                              AND (scope = 'ALL' OR scope = 'FACULTY_IT' OR scope = 'DEPT_PO')";
 
         /// <summary>
         /// Методы обновления в связи с новыми данными
@@ -187,8 +189,8 @@ namespace ClassLibrary
                                           ON CONFLICT (id) DO UPDATE SET student_id = EXCLUDED.student_id, subject = EXCLUDED.subject, grade = EXCLUDED.grade, date = EXCLUDED.date, teacher = EXCLUDED.teacher,
                                           updated_at = EXCLUDED.updated_at WHERE grades.updated_at < EXCLUDED.updated_at";
 
-        public const string UpsertOrder = @"INSERT INTO orders (id, text, date, status, created_at, updated_at) VALUES (@id, @t, @d, @st, @c, @u)
-                                          ON CONFLICT (id) DO UPDATE SET text = EXCLUDED.text, date = EXCLUDED.date, status = EXCLUDED.status, updated_at = EXCLUDED.updated_at
-                                          WHERE orders.updated_at < EXCLUDED.updated_at";
+        public const string UpsertOrder = @"INSERT INTO orders (id, text, date, scope, status, created_at, updated_at) VALUES (@id, @t, @d, @sc, @st, @c, @u)
+                                          ON CONFLICT (id) DO UPDATE SET text = EXCLUDED.text, date = EXCLUDED.date, scope = EXCLUDED.scope, 
+                                          status = EXCLUDED.status, updated_at = EXCLUDED.updated_at WHERE orders.updated_at < EXCLUDED.updated_at";
     }
 }
