@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:КР"
+        WindowState="Maximized"
         mc:Ignorable="d"
         Title="Университетская система синхронизации" Height="770" Width="1200">
     <Window.Resources>
@@ -24,6 +25,7 @@
         <Color x:Key="DarkPrimColor">#0D47A1</Color>
         <Color x:Key="AccColor">#FF9800</Color>
         <Color x:Key="SuccColor">#4CAF50</Color>
+        <Color x:Key="StatusColor">#757575</Color>
 
         <!-- Стили для кнопок -->
         <Style x:Key="ModernButton" TargetType="Button">
@@ -176,7 +178,7 @@
             </TabControl.Resources>
             <!-- Вкладка 1-->
             <TabItem Header="Структура университета">
-                <Border Background="White" CornerRadius="8" Margin="0,0,0,20">
+                <Border Background="White" CornerRadius="8">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -185,7 +187,7 @@
                         </Grid.ColumnDefinitions>
 
                         <!-- Факультеты -->
-                        <GroupBox Grid.Column="0" Header="Факультеты" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource PrimaryColor}" Margin="5,5,5,90">
+                        <GroupBox Grid.Column="0" Header="Факультеты" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource PrimaryColor}" Margin="5,5,5,40">
                             <GroupBox.BorderBrush>
                                 <SolidColorBrush Color="{StaticResource PrimColor}"/>
                             </GroupBox.BorderBrush>
@@ -206,7 +208,7 @@
                         </GroupBox>
 
                         <!-- Кафедры -->
-                        <GroupBox Grid.Column="1" Header="Кафедры" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource AccentColor}" Margin="5,5,5,90">
+                        <GroupBox Grid.Column="1" Header="Кафедры" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource AccentColor}" Margin="5,5,5,40">
                             <GroupBox.BorderBrush>
                                 <SolidColorBrush Color="{StaticResource AccColor}"/>
                             </GroupBox.BorderBrush>
@@ -228,7 +230,7 @@
                         </GroupBox>
 
                         <!-- Направления -->
-                        <GroupBox Grid.Column="2" Header="Направления подготовки" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource SuccessColor}" Margin="5,5,5,90">
+                        <GroupBox Grid.Column="2" Header="Направления подготовки" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource SuccessColor}" Margin="5,5,5,40">
                             <GroupBox.BorderBrush>
                                 <SolidColorBrush Color="{StaticResource SuccColor}"/>
                             </GroupBox.BorderBrush>
@@ -255,6 +257,108 @@
                     </Grid>
                 </Border>
             </TabItem>
+            <!-- Вкладка 2 -->
+            <TabItem Header="Студенты">
+                <Border Background="White" CornerRadius="8" Padding="20">
+                    <StackPanel>
+                        <DataGrid x:Name="GridStudents" Style="{StaticResource ModernDataGrid}"
+                                  AutoGenerateColumns="False" IsReadOnly="True" Height="400" Margin="0,0,0,15">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="ФИО" Binding="{Binding ФИО}" Width="*"/>
+                                <DataGridTextColumn Header="Группа" Binding="{Binding Группа}" Width="180"/>
+                                <DataGridTextColumn Header="Год поступления" Binding="{Binding ГодПоступления}" Width="130"/>
+                                <DataGridTextColumn Header="Направление" Binding="{Binding Профиль}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox x:Name="TxtStudentName" Style="{StaticResource ModernTextBox}" 
+                                     Width="250" Margin="0,0,10,0" Text="Иванов Иван Иванович"/>
+                            <TextBox x:Name="TxtStudentGroup" Style="{StaticResource ModernTextBox}" 
+                                     Width="180" Margin="0,0,10,0" Text="Б.ПИН.РИС.25.06"/>
+                            <TextBox x:Name="TxtStudentYear" Style="{StaticResource ModernTextBox}" 
+                                     Width="100" Margin="0,0,10,0" Text="2025"/>
+                            <ComboBox x:Name="CmbPrograms" Width="200" Margin="0,0,10,0" 
+                                      DisplayMemberPath="Профиль" SelectedValuePath="Id"/>
+                            <Button Content="Добавить студента" FontSize="16"
+                                    Style="{StaticResource ModernButton}" Margin="0,0,10,0"/>
+                            <Button Content="Удалить" FontSize="16"
+                                    Style="{StaticResource DeleteButton}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </TabItem>
+            <!-- Вкладка 3 -->
+            <TabItem Header="Успеваемость">
+                <Border Background="White" CornerRadius="8" Padding="20">
+                    <StackPanel>
+                        <DataGrid x:Name="GridGrades" Style="{StaticResource ModernDataGrid}"
+                                  AutoGenerateColumns="False" IsReadOnly="True" Height="400" Margin="0,0,0,15">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Дата" Binding="{Binding Дата, StringFormat=dd.MM.yyyy}" Width="120"/>
+                                <DataGridTextColumn Header="Студент" Binding="{Binding Студент}" Width="*"/>
+                                <DataGridTextColumn Header="Предмет" Binding="{Binding Предмет}" Width="*"/>
+                                <DataGridTextColumn Header="Оценка" Binding="{Binding Оценка}" Width="100"/>
+                                <DataGridTextColumn Header="Преподаватель" Binding="{Binding Преподаватель}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <StackPanel Orientation="Horizontal">
+                            <DatePicker x:Name="DateGrade" Width="130" Margin="0,0,10,0" VerticalContentAlignment="Center"/>
+                            <ComboBox x:Name="CmbStudents" Width="300" Margin="0,0,10,0" 
+                                      DisplayMemberPath="DisplayName"  ToolTip="Выберите студента из списка"/>
+                            <TextBox x:Name="TxtGradeSubject" Style="{StaticResource ModernTextBox}" 
+                                     Width="200" Margin="0,0,10,0" Text="Базы данных"/>
+                            <TextBox x:Name="TxtGradeValue" Style="{StaticResource ModernTextBox}" 
+                                     Width="80" Margin="0,0,10,0" Text="5"/>
+                            <TextBox x:Name="TxtGradeTeacher" Style="{StaticResource ModernTextBox}" 
+                                     Width="200" Margin="0,0,10,0" Text="Петров П.П."/>
+                            <Button Content="Поставить оценку" FontSize="16"
+                                    Style="{StaticResource ModernButton}" Margin="0,0,10,0"/>
+                            <Button Content="Удалить" FontSize="16"
+                                    Style="{StaticResource DeleteButton}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </TabItem>
+            <!-- Вкладка 4: Приказы -->
+            <TabItem Header="Приказы и распоряжения">
+                <Border Background="White" CornerRadius="8" Padding="20">
+                    <StackPanel>
+                        <DataGrid x:Name="GridOrders" Style="{StaticResource ModernDataGrid}"
+                                  AutoGenerateColumns="False" IsReadOnly="True" Height="400" Margin="0,0,0,15">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Дата" Binding="{Binding Дата, StringFormat=dd.MM.yyyy}" Width="120"/>
+                                <DataGridTextColumn Header="Текст приказа" Binding="{Binding Текст}" Width="*"/>
+                                <DataGridTextColumn Header="Адресат" Binding="{Binding Адресат}" Width="150"/>
+                                <DataGridTextColumn Header="Статус" Binding="{Binding Статус}" Width="120"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <StackPanel Orientation="Horizontal">
+                            <DatePicker x:Name="DateOrder" Width="130" Margin="0,0,10,0" VerticalContentAlignment="Center"/>
+                            <TextBox x:Name="TxtOrderText" Style="{StaticResource ModernTextBox}" 
+                                     Width="400" Margin="0,0,10,0" Text="Приказ о зачислении студентов"/>
+                            <ComboBox x:Name="CmbOrderScope" Width="200" Margin="0,0,10,0"  VerticalContentAlignment="Center">
+                                <ComboBoxItem Content="Всем" Tag="ALL" IsSelected="True"/>
+                                <ComboBoxItem Content="Факультет ИТ" Tag="FACULTY_IT"/>
+                                <ComboBoxItem Content="Кафедра ПО" Tag="DEPT_PO"/>
+                            </ComboBox>
+                            <ComboBox x:Name="CmbOrderStatus" Width="150" Margin="0,0,10,0" VerticalContentAlignment="Center">
+                                <ComboBoxItem Content="Активен" Tag="active" IsSelected="True"/>
+                                <ComboBoxItem Content="Архив" Tag="archived"/>
+                            </ComboBox>
+                            <Button Content="Издать приказ" FontSize="16"
+                                    Style="{StaticResource ModernButton}" Margin="0,0,10,0"/>
+                            <Button Content="Удалить" FontSize="16"
+                                    Style="{StaticResource DeleteButton}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </TabItem>
         </TabControl>
+        <!-- Статусная строка -->
+        <Border Grid.Row="3" Background="{StaticResource BackButtonColor}">
+            <TextBlock x:Name="StatusText" Margin="20,15" 
+                       Foreground="White" FontSize="16" FontWeight="Bold"
+                       Text="Готов к работе. Выберите уровень для начала работы"/>
+        </Border>
     </Grid>
 </Window>
