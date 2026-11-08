@@ -192,5 +192,24 @@ namespace ClassLibrary
         public const string UpsertOrder = @"INSERT INTO orders (id, text, date, scope, status, created_at, updated_at) VALUES (@id, @t, @d, @sc, @st, @c, @u)
                                           ON CONFLICT (id) DO UPDATE SET text = EXCLUDED.text, date = EXCLUDED.date, scope = EXCLUDED.scope, 
                                           status = EXCLUDED.status, updated_at = EXCLUDED.updated_at WHERE orders.updated_at < EXCLUDED.updated_at";
+
+        /// <summary>
+        /// Нахождение ID факультета по названию факульетат
+        /// </summary>
+        public const string FindFacultyByName = "SELECT id FROM faculties WHERE name = @name";
+        /// <summary>
+        /// Нахождение ID кафедры по названию и ID факультета
+        /// </summary>
+        public const string FindDeptByName = "SELECT id FROM departments WHERE name = @name AND faculty_id = @fid";
+        /// <summary>
+        /// Загрузка направлений
+        /// </summary>
+        public const string LoadMyPrograms = @"SELECT p.id, p.dept_id, p.code, p.profile, p.created_at, p.updated_at FROM programs p
+                                             JOIN departments d ON d.id = p.dept_id WHERE d.name = @deptName";
+        /// <summary>
+        /// Загрузка приказов
+        /// </summary>
+        public const string LoadMyOrders = @"SELECT id, text, date, scope, status, created_at, updated_at FROM orders 
+                                           WHERE scope = 'ALL' OR scope = 'FACULTY_IT' OR scope = 'DEPT_PO'";
     }
 }
