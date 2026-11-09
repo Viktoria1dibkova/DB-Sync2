@@ -105,28 +105,5 @@ namespace ClassLibrary
             }
 
         }
-        public static async Task SyncUpAsync(string childConn, string parentConn)
-        {
-            try
-            {
-                var localStudents = await DbService.LoadStudentsAsync(childConn);
-                var localGrades = await DbService.LoadGradesAsync(childConn);
-
-                // 3. Отправляем их родителю через UPSERT
-                using (var c = new NpgsqlConnection(parentConn))
-                {
-                    await c.OpenAsync();
-
-                    foreach (var s in localStudents)
-                    {
-                        
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Ошибка синхронизации: " + ex.Message);
-            }
-        }
     }
 }
