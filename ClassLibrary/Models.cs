@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ClassLibrary
 {
-    internal class Models
+    public class Models
     {
         /// <summary>
         /// Структура записи факультета
