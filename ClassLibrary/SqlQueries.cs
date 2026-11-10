@@ -169,27 +169,27 @@ namespace ClassLibrary
         /// Методы обновления в связи с новыми данными
         /// </summary>
 
-        public const string UpsertFaculty = @"INSERT INTO faculties (id, name, created_at, updated_at) VALUES (@id, @n, @c, @u) ON CONFLICT (id) DO UPDATE
+        public const string UpsertFaculty = @"INSERT INTO faculties (id, name, created_at, updated_at) VALUES (@id, @n, @c::timestamp, @u::timestamp) ON CONFLICT (id) DO UPDATE
                                             SET name = EXCLUDED.name, updated_at = EXCLUDED.updated_at WHERE faculties.updated_at < EXCLUDED.updated_at";
 
-        public const string UpsertDepartment = @"INSERT INTO departments (id, faculty_id, name, created_at, updated_at) VALUES (@id, @fid, @n, @c, @u)
+        public const string UpsertDepartment = @"INSERT INTO departments (id, faculty_id, name, created_at, updated_at) VALUES (@id, @fid, @n, @c::timestamp, @u::timestamp)
                                                ON CONFLICT (id) DO UPDATE SET faculty_id = EXCLUDED.faculty_id, name = EXCLUDED.name, updated_at = EXCLUDED.updated_at
                                                WHERE departments.updated_at < EXCLUDED.updated_at";
 
-        public const string UpsertProgram = @"INSERT INTO programs (id, dept_id, code, profile, created_at, updated_at) VALUES (@id, @did, @c, @p, @c, @u)
+        public const string UpsertProgram = @"INSERT INTO programs (id, dept_id, code, profile, created_at, updated_at) VALUES (@id, @did, @c, @p, @c::timestamp, @u::timestamp)
                                             ON CONFLICT (id) DO UPDATE SET dept_id = EXCLUDED.dept_id, code = EXCLUDED.code, profile = EXCLUDED.profile, updated_at = EXCLUDED.updated_at
                                             WHERE programs.updated_at < EXCLUDED.updated_at";
 
-        public const string UpsertStudent = @"INSERT INTO students (id, program_id, full_name, group_number, enrollment_year, created_at, updated_at)
+        public const string UpsertStudent = @"INSERT INTO students (id, program_id, full_name, group_number, enrollment_year, created_at::timestamp, updated_at::timestamp)
                                             VALUES (@id, @pid, @fn, @gn, @ey, @c, @u) ON CONFLICT (id) DO UPDATE  SET program_id = EXCLUDED.program_id, full_name = EXCLUDED.full_name, 
                                             group_number = EXCLUDED.group_number, enrollment_year = EXCLUDED.enrollment_year, updated_at = EXCLUDED.updated_at
                                             WHERE students.updated_at < EXCLUDED.updated_at";
 
-        public const string UpsertGrade = @"INSERT INTO grades (id, student_id, subject, grade, date, teacher, created_at, updated_at) VALUES (@id, @sid, @s, @g, @d, @t, @c, @u)
+        public const string UpsertGrade = @"INSERT INTO grades (id, student_id, subject, grade, date, teacher, created_at, updated_at) VALUES (@id, @sid, @s, @g, @d::timestamp, @t, @c::timestamp, @u::timestamp)
                                           ON CONFLICT (id) DO UPDATE SET student_id = EXCLUDED.student_id, subject = EXCLUDED.subject, grade = EXCLUDED.grade, date = EXCLUDED.date, teacher = EXCLUDED.teacher,
                                           updated_at = EXCLUDED.updated_at WHERE grades.updated_at < EXCLUDED.updated_at";
 
-        public const string UpsertOrder = @"INSERT INTO orders (id, text, date, scope, status, created_at, updated_at) VALUES (@id, @t, @d, @sc, @st, @c, @u)
+        public const string UpsertOrder = @"INSERT INTO orders (id, text, date, scope, status, created_at, updated_at) VALUES (@id, @t, @d::timestamp, @sc, @st, @c::timestamp, @u::timestamp)
                                           ON CONFLICT (id) DO UPDATE SET text = EXCLUDED.text, date = EXCLUDED.date, scope = EXCLUDED.scope, 
                                           status = EXCLUDED.status, updated_at = EXCLUDED.updated_at WHERE orders.updated_at < EXCLUDED.updated_at";
 

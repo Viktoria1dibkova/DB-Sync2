@@ -141,13 +141,13 @@
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Текущий уровень:" VerticalAlignment="Center" FontSize="16"
                            FontWeight="SemiBold" Margin="0,0,20,0" Foreground="{StaticResource SecondaryColor}"/>
-                <RadioButton x:Name="RadioUniversity" Content="Ректорат" IsChecked="True" VerticalAlignment="Center" Margin="0,0,20,0" FontSize="16"
+                <RadioButton x:Name="RadioUniversity" Content="Ректорат" IsChecked="True" VerticalAlignment="Center" Margin="0,0,20,0" FontSize="16" Click="Level_Click"
                              GroupName="LevelGroup" Foreground="{StaticResource PrimaryColor}"/>
-                <RadioButton x:Name="RadioFaculty" Content="Факультет ИТ" VerticalAlignment="Center" Margin="0,0,20,0" FontSize="16"
+                <RadioButton x:Name="RadioFaculty" Content="Факультет ИТ" VerticalAlignment="Center" Margin="0,0,20,0" FontSize="16" Click="Level_Click"
                              GroupName="LevelGroup" Foreground="{StaticResource PrimaryColor}"/>
-                <RadioButton x:Name="RadioDept" Content="Кафедра ПО" VerticalAlignment="Center" Margin="0,0,70,0" FontSize="16"
+                <RadioButton x:Name="RadioDept" Content="Кафедра ПО" VerticalAlignment="Center" Margin="0,0,70,0" FontSize="16" Click="Level_Click"
                              GroupName="LevelGroup" Foreground="{StaticResource PrimaryColor}"/>
-                <Button Content="Синхронизировать" Style="{StaticResource SuccessButton}" Padding="20,10" FontSize="16"/>
+                <Button Content="Синхронизировать" Style="{StaticResource SuccessButton}" Padding="20,10" FontSize="16" Click="Sync_Click"/> 
             </StackPanel>
         </Border>
 
@@ -195,14 +195,14 @@
                                 <DataGrid x:Name="GridFaculties" Style="{StaticResource ModernDataGrid}" AutoGenerateColumns="False" 
                                           IsReadOnly="True" Height="265" Margin="0,0,0,10" SelectionMode="Single">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn  Header="Название" Binding="{Binding Название}" Width="*"/>
+                                        <DataGridTextColumn  Header="Название" Binding="{Binding Name}" Width="*"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                                 <TextBox x:Name="TxtFacultyName" Style="{StaticResource ModernTextBox}" 
                                          Margin="0,0,0,8" Text="Введите название факультета..."/>
-                                <Button Content="Добавить факультет" FontSize="16"
+                                <Button x:Name="BtnAddFaculty" Content="Добавить факультет" FontSize="16" Click="AddFaculty_Click" 
                                         Style="{StaticResource ModernButton}" Margin="0,0,0,8"/>
-                                <Button Content="Удалить" FontSize="16"  
+                                <Button x:Name="BtnDeleteFaculty" Content="Удалить" FontSize="16" Click="DeleteFaculty_Click"  
                                         Style="{StaticResource DeleteButton}"/>
                             </StackPanel>
                         </GroupBox>
@@ -216,15 +216,15 @@
                                 <DataGrid x:Name="GridDepartments" Style="{StaticResource ModernDataGrid}" AutoGenerateColumns="False" 
                                           IsReadOnly="True"  Height="265" Margin="0,0,0,10" SelectionMode="Single">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Название" Binding="{Binding Название}" Width="*"/>
-                                        <DataGridTextColumn Header="Факультет" Binding="{Binding Факультет}" Width="*"/>
+                                        <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="*"/>
+                                        <DataGridTextColumn Header="Факультет" Binding="{Binding FacultyName}" Width="*"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                                 <TextBox x:Name="TxtDeptName" Style="{StaticResource ModernTextBox}" 
                                          Margin="0,0,0,8" Text="Введите название кафедры..."/>
-                                <Button Content="Добавить кафедру" FontSize="16"
+                                <Button x:Name ="BtnAddDept" Content="Добавить кафедру" FontSize="16" Click="AddDepartment_Click" 
                                         Style="{StaticResource ModernButton}" Margin="0,0,0,8"/>
-                                <Button Content="Удалить" FontSize="16"
+                                <Button x:Name="BtnDeleteDept" Content="Удалить" FontSize="16" Click="DeleteDepartment_Click" 
                                         Style="{StaticResource DeleteButton}"/>
                             </StackPanel>
                         </GroupBox>
@@ -239,18 +239,18 @@
                                           AutoGenerateColumns="False" IsReadOnly="True" 
                                           Height="230" Margin="0,0,0,10" SelectionMode="Single">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Код" Binding="{Binding Код}" Width="90"/>
-                                        <DataGridTextColumn Header="Профиль" Binding="{Binding Профиль}" Width="*"/>
-                                        <DataGridTextColumn Header="Кафедра" Binding="{Binding Кафедра}" Width="*"/>
+                                        <DataGridTextColumn Header="Код" Binding="{Binding Code}" Width="90"/>
+                                        <DataGridTextColumn Header="Профиль" Binding="{Binding Profile}" Width="*"/>
+                                        <DataGridTextColumn Header="Кафедра" Binding="{Binding DeptmentName}" Width="*"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                                 <TextBox x:Name="TxtProgCode" Style="{StaticResource ModernTextBox}" 
                                          Margin="0,0,0,2" Text="09.03.04"/>
                                 <TextBox x:Name="TxtProgProfile" Style="{StaticResource ModernTextBox}" 
                                          Margin="0,0,0,5" Text="Разработка информационных систем"/>
-                                <Button Content="Добавить направление" FontSize="16"
+                                <Button x:Name="BtnAddProgram" Content="Добавить направление" FontSize="16" Click="AddProgram_Click" 
                                         Style="{StaticResource ModernButton}" Margin="0,0,0,3"/>
-                                <Button Content="Удалить" FontSize="16" 
+                                <Button x:Name ="BtnDeleteProgram" Content="Удалить" FontSize="16" Click="DeleteProgram_Click" 
                                         Style="{StaticResource DeleteButton}"/>
                             </StackPanel>
                         </GroupBox>
@@ -264,10 +264,10 @@
                         <DataGrid x:Name="GridStudents" Style="{StaticResource ModernDataGrid}"
                                   AutoGenerateColumns="False" IsReadOnly="True" Height="400" Margin="0,0,0,15">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="ФИО" Binding="{Binding ФИО}" Width="*"/>
-                                <DataGridTextColumn Header="Группа" Binding="{Binding Группа}" Width="180"/>
-                                <DataGridTextColumn Header="Год поступления" Binding="{Binding ГодПоступления}" Width="130"/>
-                                <DataGridTextColumn Header="Направление" Binding="{Binding Профиль}" Width="*"/>
+                                <DataGridTextColumn Header="ФИО" Binding="{Binding FullName}" Width="*"/>
+                                <DataGridTextColumn Header="Группа" Binding="{Binding GroupNumber}" Width="180"/>
+                                <DataGridTextColumn Header="Год поступления" Binding="{Binding EnrollmentYear}" Width="130"/>
+                                <DataGridTextColumn Header="Направление" Binding="{Binding Profile}" Width="*"/>
                             </DataGrid.Columns>
                         </DataGrid>
                         <StackPanel Orientation="Horizontal">
@@ -279,9 +279,9 @@
                                      Width="100" Margin="0,0,10,0" Text="2025"/>
                             <ComboBox x:Name="CmbPrograms" Width="200" Margin="0,0,10,0" 
                                       DisplayMemberPath="Профиль" SelectedValuePath="Id"/>
-                            <Button Content="Добавить студента" FontSize="16"
+                            <Button Content="Добавить студента" FontSize="16" Click="AddStudent_Click"
                                     Style="{StaticResource ModernButton}" Margin="0,0,10,0"/>
-                            <Button Content="Удалить" FontSize="16"
+                            <Button Content="Удалить" FontSize="16" Click="DeleteStudent_Click"
                                     Style="{StaticResource DeleteButton}"/>
                         </StackPanel>
                     </StackPanel>
@@ -294,11 +294,11 @@
                         <DataGrid x:Name="GridGrades" Style="{StaticResource ModernDataGrid}"
                                   AutoGenerateColumns="False" IsReadOnly="True" Height="400" Margin="0,0,0,15">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Дата" Binding="{Binding Дата, StringFormat=dd.MM.yyyy}" Width="120"/>
-                                <DataGridTextColumn Header="Студент" Binding="{Binding Студент}" Width="*"/>
-                                <DataGridTextColumn Header="Предмет" Binding="{Binding Предмет}" Width="*"/>
-                                <DataGridTextColumn Header="Оценка" Binding="{Binding Оценка}" Width="100"/>
-                                <DataGridTextColumn Header="Преподаватель" Binding="{Binding Преподаватель}" Width="*"/>
+                                <DataGridTextColumn Header="Дата" Binding="{Binding Date, StringFormat=dd.MM.yyyy}" Width="120"/>
+                                <DataGridTextColumn Header="Студент" Binding="{Binding StudentName}" Width="*"/>
+                                <DataGridTextColumn Header="Предмет" Binding="{Binding Subject}" Width="*"/>
+                                <DataGridTextColumn Header="Оценка" Binding="{Binding Grade}" Width="100"/>
+                                <DataGridTextColumn Header="Преподаватель" Binding="{Binding Teacher}" Width="*"/>
                             </DataGrid.Columns>
                         </DataGrid>
                         <StackPanel Orientation="Horizontal">
@@ -311,9 +311,9 @@
                                      Width="80" Margin="0,0,10,0" Text="5"/>
                             <TextBox x:Name="TxtGradeTeacher" Style="{StaticResource ModernTextBox}" 
                                      Width="200" Margin="0,0,10,0" Text="Петров П.П."/>
-                            <Button Content="Поставить оценку" FontSize="16"
+                            <Button Content="Поставить оценку" FontSize="16" Click="AddGrade_Click"
                                     Style="{StaticResource ModernButton}" Margin="0,0,10,0"/>
-                            <Button Content="Удалить" FontSize="16"
+                            <Button Content="Удалить" FontSize="16" Click="DeleteGrade_Click"
                                     Style="{StaticResource DeleteButton}"/>
                         </StackPanel>
                     </StackPanel>
@@ -326,10 +326,10 @@
                         <DataGrid x:Name="GridOrders" Style="{StaticResource ModernDataGrid}"
                                   AutoGenerateColumns="False" IsReadOnly="True" Height="400" Margin="0,0,0,15">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Дата" Binding="{Binding Дата, StringFormat=dd.MM.yyyy}" Width="120"/>
-                                <DataGridTextColumn Header="Текст приказа" Binding="{Binding Текст}" Width="*"/>
-                                <DataGridTextColumn Header="Адресат" Binding="{Binding Адресат}" Width="150"/>
-                                <DataGridTextColumn Header="Статус" Binding="{Binding Статус}" Width="120"/>
+                                <DataGridTextColumn Header="Дата" Binding="{Binding Date, StringFormat=dd.MM.yyyy}" Width="120"/>
+                                <DataGridTextColumn Header="Текст приказа" Binding="{Binding Text}" Width="*"/>
+                                <DataGridTextColumn Header="Адресат" Binding="{Binding Scope}" Width="150"/>
+                                <DataGridTextColumn Header="Статус" Binding="{Binding Status}" Width="120"/>
                             </DataGrid.Columns>
                         </DataGrid>
                         <StackPanel Orientation="Horizontal">
@@ -345,9 +345,9 @@
                                 <ComboBoxItem Content="Активен" Tag="active" IsSelected="True"/>
                                 <ComboBoxItem Content="Архив" Tag="archived"/>
                             </ComboBox>
-                            <Button Content="Издать приказ" FontSize="16"
+                            <Button Content="Издать приказ" FontSize="16" Click="AddOrder_Click"
                                     Style="{StaticResource ModernButton}" Margin="0,0,10,0"/>
-                            <Button Content="Удалить" FontSize="16"
+                            <Button Content="Удалить" FontSize="16" Click="DeleteOrder_Click"
                                     Style="{StaticResource DeleteButton}"/>
                         </StackPanel>
                     </StackPanel>

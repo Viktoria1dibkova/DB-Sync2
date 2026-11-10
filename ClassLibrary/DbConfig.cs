@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ClassLibrary
 {
-    internal class DbConfig
+    public class DbConfig
     {
         public const string UniversityConn = "Host=localhost;Port=5432;Database=university_db;Username=postgres";
 

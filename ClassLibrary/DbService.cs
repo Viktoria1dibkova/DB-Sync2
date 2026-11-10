@@ -7,7 +7,7 @@ using Npgsql;
 
 namespace ClassLibrary
 {
-    internal class DbService
+    public class DbService
     {
         /// <summary>
         /// Инициализация

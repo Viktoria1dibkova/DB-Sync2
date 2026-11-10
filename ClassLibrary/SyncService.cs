@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ClassLibrary
 {
-    internal class SyncService
+    public class SyncService
     {
         /// <summary>
         /// Синхронизации сверху вниз
