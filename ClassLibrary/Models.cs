@@ -23,6 +23,7 @@ namespace ClassLibrary
         public class DeptItem
         {
             public Guid Id { get; set; }
+            public Guid FacultyId { get; set; }
             public string Name { get; set; }
             public string FacultyName { get; set; }
         }
@@ -33,6 +34,7 @@ namespace ClassLibrary
         public class ProgramItem
         {
             public Guid Id { get; set; }
+            public Guid DepartmentId { get; set; }
             public string Code { get; set; }
             public string Profile { get; set; }
             public string DepartmentName { get; set; }
@@ -49,6 +51,7 @@ namespace ClassLibrary
             public string GroupNumber { get; set; }
             public int EnrollmentYear { get; set; }
             public string Profile { get; set; }
+            public bool IsDeleted { get; set; }
             public string DisplayName => $"{FullName} | {GroupNumber} | {EnrollmentYear}";
         }
 
@@ -63,6 +66,7 @@ namespace ClassLibrary
             public string StudentName { get; set; }
             public string Subject { get; set; }
             public int Grade { get; set; }
+            public bool IsDeleted { get; set; }
             public string Teacher { get; set; }
         }
 

@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System.Collections.Generic;
+using System.Security.Cryptography;
 
 namespace ClassLibrary
 {
@@ -34,6 +35,7 @@ namespace ClassLibrary
                                      full_name VARCHAR(255) NOT NULL,
                                      group_number VARCHAR(50) NOT NULL,
                                      enrollment_year INTEGER NOT NULL CHECK (enrollment_year > 2000),
+                                     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
                                      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
                                      updated_at TIMESTAMP NOT NULL DEFAULT NOW());
             
@@ -44,6 +46,7 @@ namespace ClassLibrary
                                      grade INTEGER NOT NULL CHECK (grade BETWEEN 2 AND 5),
                                      date DATE NOT NULL DEFAULT CURRENT_DATE,
                                      teacher VARCHAR(255)  NOT NULL,
+                                     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
                                      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
                                      updated_at TIMESTAMP NOT NULL DEFAULT NOW());
             
@@ -61,7 +64,10 @@ namespace ClassLibrary
                                      last_sync TIMESTAMP NOT NULL);
             
                                      INSERT INTO sync_state (id, last_sync) VALUES (1, '2000-01-01')
-                                     ON CONFLICT (id) DO UPDATE SET last_sync = EXCLUDED.last_sync;";
+                                     ON CONFLICT (id) DO NOTHING;
+
+                                     INSERT INTO sync_state (id, last_sync) VALUES (2, '2000-01-01')
+                                     ON CONFLICT (id) DO NOTHING;";
 
         /// <summary>
         /// Чтение факультетов
@@ -85,14 +91,11 @@ namespace ClassLibrary
         /// </summary>
         public const string Students = @"SELECT s.id, s.full_name AS ""ФИО"", s.group_number AS ""Группа"", s.enrollment_year AS ""Год поступления"",
                                        p.code AS ""Код направления"", p.profile AS ""Профиль"", s.created_at AS ""Создан"" FROM students s
-                                       JOIN programs p ON p.id = s.program_id ORDER BY s.group_number, s.full_name";
+                                       JOIN programs p ON p.id = s.program_id WHERE s.is_deleted = FALSE ORDER BY s.group_number, s.full_name";
 
-        /// <summary>
-        /// Чтение оценок
-        /// </summary>
         public const string Grades = @"SELECT g.id, g.date AS ""Дата"", s.full_name AS ""Студент"", g.subject AS ""Предмет"", g.grade AS ""Оценка"", 
                                      g.teacher AS ""Преподаватель"", g.created_at AS ""Создан"" FROM grades g JOIN students s ON s.id = g.student_id
-                                     ORDER BY g.date DESC";
+                                     WHERE g.is_deleted = FALSE ORDER BY g.date DESC";
 
         /// <summary>
         /// Чтение приказов
@@ -142,74 +145,92 @@ namespace ClassLibrary
         /// <summary>
         /// Получение времени последней синхронизации
         /// </summary>
-        public const string GetSync = "SELECT last_sync FROM sync_state WHERE id = 1";
+        public const string GetSync = "SELECT last_sync FROM sync_state WHERE id = @id";
 
         /// <summary>
         /// Получение времени последней синхронизации
         /// </summary>
-        public const string SetSync = "UPDATE sync_state SET last_sync = @ts WHERE id = 1";
-
-        /// <summary>
-        /// Методы для получения новых данных
-        /// </summary>
-        public const string LoadFacultiesSince = @"SELECT id, name, created_at, updated_at FROM faculties WHERE updated_at > @since";
-
-        public const string LoadDepartmentsSince = @"SELECT id, faculty_id, name, created_at, updated_at FROM departments WHERE updated_at > @since";
-
-        public const string LoadProgramsSince = @"SELECT id, dept_id, code, profile, created_at, updated_at FROM programs WHERE updated_at > @since";
-
-        public const string LoadStudentsSince = @"SELECT id, program_id, full_name, group_number, enrollment_year, created_at, updated_at FROM students WHERE updated_at > @since";
-
-        public const string LoadGradesSince = @"SELECT id, student_id, subject, grade, date, teacher, created_at, updated_at FROM grades WHERE updated_at > @since";
-
-        public const string LoadOrdersSince = @"SELECT id, text, date, scope, status, created_at, updated_at FROM orders WHERE updated_at > @since 
-                                              AND (scope = 'ALL' OR scope = 'FACULTY_IT' OR scope = 'DEPT_PO')";
+        public const string SetSync = "UPDATE sync_state SET last_sync = @ts WHERE id = @id";
 
         /// <summary>
         /// Методы обновления в связи с новыми данными
         /// </summary>
 
-        public const string UpsertFaculty = @"INSERT INTO faculties (id, name, created_at, updated_at) VALUES (@id, @n, @c::timestamp, @u::timestamp) ON CONFLICT (id) DO UPDATE
+        public const string UpsertFaculty = @"INSERT INTO faculties (id, name, updated_at) VALUES (@id, @n, @u) ON CONFLICT (id) DO UPDATE
                                             SET name = EXCLUDED.name, updated_at = EXCLUDED.updated_at WHERE faculties.updated_at < EXCLUDED.updated_at";
 
-        public const string UpsertDepartment = @"INSERT INTO departments (id, faculty_id, name, created_at, updated_at) VALUES (@id, @fid, @n, @c::timestamp, @u::timestamp)
+        public const string UpsertDepartment = @"INSERT INTO departments (id, faculty_id, name, updated_at) VALUES (@id, @fid, @n, @u)
                                                ON CONFLICT (id) DO UPDATE SET faculty_id = EXCLUDED.faculty_id, name = EXCLUDED.name, updated_at = EXCLUDED.updated_at
                                                WHERE departments.updated_at < EXCLUDED.updated_at";
 
-        public const string UpsertProgram = @"INSERT INTO programs (id, dept_id, code, profile, created_at, updated_at) VALUES (@id, @did, @c, @p, @c::timestamp, @u::timestamp)
+        public const string UpsertProgram = @"INSERT INTO programs (id, dept_id, code, profile, updated_at) VALUES (@id, @did, @c, @p, @u)
                                             ON CONFLICT (id) DO UPDATE SET dept_id = EXCLUDED.dept_id, code = EXCLUDED.code, profile = EXCLUDED.profile, updated_at = EXCLUDED.updated_at
                                             WHERE programs.updated_at < EXCLUDED.updated_at";
 
-        public const string UpsertStudent = @"INSERT INTO students (id, program_id, full_name, group_number, enrollment_year, created_at::timestamp, updated_at::timestamp)
-                                            VALUES (@id, @pid, @fn, @gn, @ey, @c, @u) ON CONFLICT (id) DO UPDATE  SET program_id = EXCLUDED.program_id, full_name = EXCLUDED.full_name, 
-                                            group_number = EXCLUDED.group_number, enrollment_year = EXCLUDED.enrollment_year, updated_at = EXCLUDED.updated_at
-                                            WHERE students.updated_at < EXCLUDED.updated_at";
+        public const string UpsertStudent = @"INSERT INTO students (id, program_id, full_name, group_number, enrollment_year, is_deleted, updated_at)
+                                            VALUES (@id, @pid, @fn, @gn, @ey, @del, @u) ON CONFLICT (id) DO UPDATE SET program_id = EXCLUDED.program_id, full_name = EXCLUDED.full_name,
+                                            group_number = EXCLUDED.group_number, enrollment_year = EXCLUDED.enrollment_year, is_deleted = EXCLUDED.is_deleted, updated_at = EXCLUDED.updated_at";
 
-        public const string UpsertGrade = @"INSERT INTO grades (id, student_id, subject, grade, date, teacher, created_at, updated_at) VALUES (@id, @sid, @s, @g, @d::timestamp, @t, @c::timestamp, @u::timestamp)
-                                          ON CONFLICT (id) DO UPDATE SET student_id = EXCLUDED.student_id, subject = EXCLUDED.subject, grade = EXCLUDED.grade, date = EXCLUDED.date, teacher = EXCLUDED.teacher,
-                                          updated_at = EXCLUDED.updated_at WHERE grades.updated_at < EXCLUDED.updated_at";
+        public const string UpsertGrade = @"INSERT INTO grades (id, student_id, subject, grade, date, teacher, is_deleted, updated_at)
+                                          VALUES (@id, @sid, @s, @g, @d, @t, @del, @u) ON CONFLICT (id) DO UPDATE SET student_id = EXCLUDED.student_id, subject = EXCLUDED.subject, grade = EXCLUDED.grade,
+                                          date = EXCLUDED.date, teacher = EXCLUDED.teacher, is_deleted = EXCLUDED.is_deleted, updated_at = EXCLUDED.updated_at";
 
-        public const string UpsertOrder = @"INSERT INTO orders (id, text, date, scope, status, created_at, updated_at) VALUES (@id, @t, @d::timestamp, @sc, @st, @c::timestamp, @u::timestamp)
+        public const string UpsertOrder = @"INSERT INTO orders (id, text, date, scope, status, updated_at) VALUES (@id, @t, @d, @sc, @st, @u)
                                           ON CONFLICT (id) DO UPDATE SET text = EXCLUDED.text, date = EXCLUDED.date, scope = EXCLUDED.scope, 
                                           status = EXCLUDED.status, updated_at = EXCLUDED.updated_at WHERE orders.updated_at < EXCLUDED.updated_at";
 
         /// <summary>
-        /// Нахождение ID факультета по названию факульетат
+        /// Загрузка факульеттов
         /// </summary>
-        public const string FindFacultyByName = "SELECT id FROM faculties WHERE name = @name";
+        public const string LoadMyFaculties = @"SELECT id, name FROM faculties";
+
         /// <summary>
-        /// Нахождение ID кафедры по названию и ID факультета
+        /// Загрузка кафедр
         /// </summary>
-        public const string FindDeptByName = "SELECT id FROM departments WHERE name = @name AND faculty_id = @fid";
+        public const string LoadMyDept = "SELECT id, faculty_id, name FROM departments";
+
         /// <summary>
         /// Загрузка направлений
         /// </summary>
-        public const string LoadMyPrograms = @"SELECT p.id, p.dept_id, p.code, p.profile, p.created_at, p.updated_at FROM programs p
-                                             JOIN departments d ON d.id = p.dept_id WHERE d.name = @deptName";
-        /// <summary>
+        public const string LoadMyPrograms = "SELECT id, dept_id, code, profile FROM programs";
         /// Загрузка приказов
         /// </summary>
         public const string LoadMyOrders = @"SELECT id, text, date, scope, status, created_at, updated_at FROM orders 
                                            WHERE scope = 'ALL' OR scope = 'FACULTY_IT' OR scope = 'DEPT_PO'";
+
+        /// <summary>
+        /// Методы для получения новых данных        
+        /// </summary>
+        public const string LoadStudentsForSync = @"SELECT id, program_id, full_name, group_number, enrollment_year, is_deleted FROM students WHERE updated_at >= @since";
+        public const string LoadGradesForSync = @"SELECT id, student_id, subject, grade, date, teacher, is_deleted FROM grades WHERE updated_at >= @since";
+
+        /// <summary>
+        /// Методы мягкого и физического удаления
+        /// </summary>
+        public const string SoftDeleteStudent = "UPDATE students SET is_deleted = TRUE, updated_at = NOW() WHERE id = @id";
+        public const string SoftDeleteGrade = "UPDATE grades SET is_deleted = TRUE, updated_at = NOW() WHERE id = @id";
+        public const string HardDeleteStudent = "DELETE FROM students WHERE id = @id";
+        public const string HardDeleteGrade = "DELETE FROM grades WHERE id = @id";
+
+        /// <summary>
+        /// Удаление осиротевших записей
+        /// </summary>
+        public const string DeleteOrphanedFaculties = "DELETE FROM faculties WHERE id != ALL(@validIds)";
+        public const string DeleteAllFaculties = "DELETE FROM faculties";
+
+        public const string DeleteOrphanedDepartments = "DELETE FROM departments WHERE faculty_id = @fid AND id != ALL(@validIds)";
+        public const string DeleteAllDepartmentsByFaculty = "DELETE FROM departments WHERE faculty_id = @fid";
+
+        public const string DeleteOrphanedPrograms = "DELETE FROM programs WHERE dept_id = @did AND id != ALL(@validIds)";
+        public const string DeleteAllProgramsByDept = "DELETE FROM programs WHERE dept_id = @did";
+
+        public const string DeleteOrphanedOrders = "DELETE FROM orders WHERE (scope = 'ALL' OR scope = 'FACULTY_IT' OR scope = 'DEPT_PO') AND id != ALL(@validIds)";
+        public const string DeleteAllLocalOrders = "DELETE FROM orders WHERE scope = 'ALL' OR scope = 'FACULTY_IT' OR scope = 'DEPT_PO'";
+
+        /// <summary>
+        /// Каскадное кдаление
+        /// </summary>
+        public const string DeleteProgramsByDept = "DELETE FROM programs WHERE dept_id = @did";
+        public const string DeleteDepartmentById = "DELETE FROM departments WHERE id = @id";
     }
 }

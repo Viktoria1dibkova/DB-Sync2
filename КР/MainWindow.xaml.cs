@@ -1,14 +1,6 @@
 ﻿using ClassLibrary;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using static ClassLibrary.Models;
 
 namespace КР
@@ -91,12 +83,24 @@ namespace КР
 
             BtnAddFaculty.Visibility = isUniversity ? Visibility.Visible : Visibility.Hidden;
             BtnDeleteFaculty.Visibility = isUniversity ? Visibility.Visible : Visibility.Hidden;
-
-            BtnAddDept.Visibility = (isUniversity || isFaculty) ? Visibility.Visible : Visibility.Hidden;
-            BtnDeleteDept.Visibility = (isUniversity || isFaculty) ? Visibility.Visible : Visibility.Collapsed;
-
-            BtnAddProgram.Visibility = (isUniversity || isFaculty) ? Visibility.Visible : Visibility.Hidden;
-            BtnDeleteProgram.Visibility = (isUniversity || isFaculty) ? Visibility.Visible : Visibility.Hidden;
+            BtnAddDept.Visibility = isUniversity ? Visibility.Visible : Visibility.Hidden;
+            BtnDeleteDept.Visibility = isUniversity ? Visibility.Visible : Visibility.Hidden;
+            BtnAddProgram.Visibility = isUniversity ? Visibility.Visible : Visibility.Hidden;
+            BtnDeleteProgram.Visibility = isUniversity ? Visibility.Visible : Visibility.Hidden;
+            BtnSync.Visibility = isUniversity ? Visibility.Hidden : Visibility.Visible;
+            BtnAddStudent.Visibility = isUniversity || isDept ? Visibility.Hidden : Visibility.Visible;
+            BtnDeleteStudent.Visibility = isUniversity || isDept ? Visibility.Hidden : Visibility.Visible;
+            BtnAddGrade.Visibility = isUniversity ? Visibility.Hidden : Visibility.Visible; 
+            BtnDeleteGrade.Visibility = isUniversity ? Visibility.Hidden : Visibility.Visible;
+            TxtStudentName.Visibility = isUniversity || isDept ? Visibility.Hidden : Visibility.Visible;
+            TxtStudentGroup.Visibility = isUniversity || isDept ? Visibility.Hidden : Visibility.Visible;
+            TxtStudentYear.Visibility = isUniversity || isDept ? Visibility.Hidden : Visibility.Visible;
+            CmbPrograms.Visibility = isUniversity || isDept? Visibility.Hidden : Visibility.Visible;
+            DateGrade.Visibility = isUniversity || isFaculty ? Visibility.Hidden : Visibility.Visible;
+            CmbStudents.Visibility = isUniversity || isFaculty ? Visibility.Hidden : Visibility.Visible;
+            TxtGradeTeacher.Visibility = isUniversity || isFaculty ? Visibility.Hidden : Visibility.Visible;
+            TxtGradeValue.Visibility = isUniversity || isFaculty ? Visibility.Hidden : Visibility.Visible;
+            TxtGradeSubject.Visibility = isUniversity || isFaculty ? Visibility.Hidden : Visibility.Visible;
 
             if (isDept)
             {
@@ -406,7 +410,7 @@ namespace КР
 
             try
             {
-                await DbService.DeleteStudentAsync(CurrentConn, item.Id);
+                await DbService.SoftDeleteStudentAsync(CurrentConn, item.Id);
                 await LoadAllDataAsync();
                 StatusText.Text = $"Студент '{item.FullName}' удален";
             }
@@ -435,7 +439,7 @@ namespace КР
 
             try
             {
-                await DbService.DeleteGradeAsync(CurrentConn, item.Id);
+                await DbService.SoftDeleteGradeAsync(CurrentConn, item.Id);
                 await LoadAllDataAsync();
                 StatusText.Text = "Оценка удалена";
             }
@@ -482,24 +486,29 @@ namespace КР
         /// <param name="e"></param>
         private async void Sync_Click(object sender, RoutedEventArgs e)
         {
-            if (CurrentLevel == "Ректорат")
-            {
-                StatusText.Text = "⚠️ Ректорат является главным узлом. Синхронизация не требуется.";
-                return;
-            }
-
-            StatusText.Text = "⏳ Выполняется синхронизация с родительским узлом...";
             try
             {
-                string parentConn = CurrentLevel == "Факультет ИТ" ? DbConfig.UniversityConn : DbConfig.FacultyConn;
-                await SyncService.SyncFullAsync(parentConn, CurrentConn);
+                if (CurrentLevel == "Ректорат")
+                {
+                    await LoadAllDataAsync();
+                    return;
+                }
+                else if (CurrentLevel == "Факультет ИТ")
+                {
+                    await SyncService.SyncUpAsync(CurrentConn, DbConfig.UniversityConn);
+                    await SyncService.SyncDownAsync(DbConfig.UniversityConn, CurrentConn);
+                }
+                else
+                {
+                    await SyncService.SyncUpAsync(CurrentConn, DbConfig.FacultyConn, DbConfig.UniversityConn);
+                    await SyncService.SyncDownAsync(DbConfig.FacultyConn, CurrentConn);
+                }
 
-                StatusText.Text = "Синхронизация успешно завершена!";
                 await LoadAllDataAsync();
             }
             catch (Exception ex)
             {
-                StatusText.Text = "Ошибка синхронизации: " + ex.Message;
+                StatusText.Text = "Ошибка: " + ex.Message;
             }
         }
     }

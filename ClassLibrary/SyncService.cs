@@ -1,63 +1,118 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ClassLibrary
 {
-    public class SyncService
+    public static class SyncService
     {
         /// <summary>
-        /// Синхронизации сверху вниз
+        /// Синхронизация вниз
         /// </summary>
-        /// <param name="parentConn">строка соединения родителя(ректорат)</param>
-        /// <param name="childConn">строка соединения ребенка (кафедра)</param>
+        /// <param name="parentConn"> строка соединения родителя</param>
+        /// <param name="childConn">строка соединения ребенка</param>
         /// <returns></returns>
-        /// <exception cref="Exception"></exception>
         public static async Task SyncDownAsync(string parentConn, string childConn)
         {
-            var facultyId = await DbService.FindFacultyByNameAsync(parentConn, DbConfig.MyFacultyName);
-            if (facultyId == null) throw new Exception($"Факультет '{DbConfig.MyFacultyName}' не найден у родителя");
-            var deptId = await DbService.FindDeptByNameAsync(parentConn, facultyId.Value, DbConfig.MyDeptName);
-            if (deptId == null) throw new Exception($"Кафедра '{DbConfig.MyDeptName}' не найдена у родителя");
+            try
+            {
+                var parentFaculties = await DbService.LoadAllFacultiesForSyncAsync(parentConn);
+                var parentDepts = await DbService.LoadAllDepartmentsForSyncAsync(parentConn);
+                var parentPrograms = await DbService.LoadAllProgramsForSyncAsync(parentConn);
+                await DbService.DeleteOrphanedFacultiesAsync(childConn, parentFaculties.Select(f => f.Id).ToList());
+                foreach (var faculty in parentFaculties) 
+                {
+                    var deptIds = parentDepts.Where(d => d.FacultyId == faculty.Id).Select(d => d.Id).ToList();
+                    await DbService.DeleteOrphanedDepartmentsAsync(childConn, faculty.Id, deptIds);
+                }
+                foreach (var dept in parentDepts)
+                {
+                    var progIds = parentPrograms.Where(p => p.DepartmentId == dept.Id).Select(p => p.Id).ToList();
+                    await DbService.DeleteOrphanedProgramsAsync(childConn, dept.Id, progIds);
+                }
+                foreach (var f in parentFaculties) await DbService.UpsertFacultyAsync(childConn, f.Id, f.Name);
+                foreach (var d in parentDepts) await DbService.UpsertDepartmentAsync(childConn, d.Id, d.FacultyId, d.Name);
+                foreach (var p in parentPrograms) await DbService.UpsertProgramAsync(childConn, p.Id, p.DepartmentId, p.Code, p.Profile);
 
-            var programs = await DbService.LoadProgramsForSyncAsync(parentConn, DbConfig.MyDeptName);
-            var orders = await DbService.LoadOrdersForSyncAsync(parentConn);
+                var lastSyncDown = await DbService.GetLastSyncAsync(childConn, syncId: 2);
+                var students = await DbService.LoadStudentsForSyncAsync(parentConn, lastSyncDown);
+                int okStudents = 0;
 
-            foreach (var p in programs) await DbService.UpsertProgramAsync(childConn, p.Id, deptId.Value, p.Code, p.Profile);
+                foreach (var s in students)
+                {
+                    if (s.IsDeleted) await DbService.HardDeleteStudentAsync(childConn, s.Id);
+                    else await DbService.UpsertStudentAsync( childConn, s.Id, s.ProgramId, s.FullName, s.GroupNumber, s.EnrollmentYear, isDeleted: false);
+                    okStudents++;
+                }
 
-            foreach (var o in orders) await DbService.UpsertOrderAsync(childConn, o.Id, o.Text, o.Date, o.Scope, o.Status);
+                var orders = await DbService.LoadOrdersForSyncAsync(parentConn);
+                await DbService.DeleteOrphanedOrdersAsync(childConn, orders.Select(o => o.Id).ToList());
+
+                foreach (var o in orders) await DbService.UpsertOrderAsync(childConn, o.Id, o.Text, o.Date, o.Scope, o.Status);
+                await DbService.SetLastSyncAsync(childConn, DateTime.Now, syncId: 2);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка SyncDownAsync: {ex.Message}");
+                throw;
+            }
         }
 
         /// <summary>
-        /// Синхронизация снизу вверх
+        /// Синхронизация вверх
         /// </summary>
-        /// <param name="childConn">строка соединения ребенка</param>
+        /// <param name="childConn">соединение ребенка</param>
         /// <param name="parentConn">строка соединения родителя</param>
         /// <returns></returns>
-        public static async Task SyncUpAsync(string childConn, string parentConn)
+        public static async Task SyncUpAsync(string childConn, string parentConn, string grandparentConn = null)
         {
-            var lastSync = await DbService.GetLastSyncAsync(childConn);
-            var students = await DbService.LoadStudentsForSyncAsync(childConn, lastSync);
-            var grades = await DbService.LoadGradesForSyncAsync(childConn, lastSync);
+            try
+            {
+                var lastSync = await DbService.GetLastSyncAsync(childConn, syncId: 1);
+                var students = await DbService.LoadStudentsForSyncAsync(childConn, lastSync);
+                int okStudents = 0;
 
-            foreach (var s in students) await DbService.UpsertStudentAsync(parentConn, s.Id, s.ProgramId, s.FullName, s.GroupNumber, s.EnrollmentYear);
-            foreach (var g in grades) await DbService.UpsertGradeAsync(parentConn, g.Id,g.StudentId, g.Subject, g.Grade, g.Date, g.Teacher);
-            
-            await DbService.SetLastSyncAsync(childConn, DateTime.Now);
-        }
+                foreach (var s in students)
+                {
+                    if (s.IsDeleted)
+                    {
+                        await DbService.HardDeleteStudentAsync(parentConn, s.Id);
+                        if (grandparentConn != null) await DbService.HardDeleteStudentAsync(grandparentConn, s.Id);
+                    }
+                    else
+                    {
+                        await DbService.UpsertStudentAsync(parentConn, s.Id, s.ProgramId, s.FullName, s.GroupNumber, s.EnrollmentYear, false);
+                        if (grandparentConn != null)  await DbService.UpsertStudentAsync(grandparentConn, s.Id, s.ProgramId, s.FullName, s.GroupNumber, s.EnrollmentYear, false);
+                           
+                    }
+                    okStudents++;
+                }
+                var grades = await DbService.LoadGradesForSyncAsync(childConn, lastSync);
+                int okGrades = 0;
 
-        /// <summary>
-        /// Полная синхронизаци
-        /// </summary>
-        /// <param name="parentConn">строка соединения родителя</param>
-        /// <param name="childConn">строка соединения ребенка</param>
-        /// <returns></returns>
-        public static async Task SyncFullAsync(string parentConn, string childConn)
-        {
-            await SyncDownAsync(parentConn, childConn);
-            await SyncUpAsync(childConn, parentConn);
+                foreach (var g in grades)
+                {
+                    if (g.IsDeleted)
+                    {
+                        await DbService.HardDeleteGradeAsync(parentConn, g.Id);
+                        if (grandparentConn != null) await DbService.HardDeleteGradeAsync(grandparentConn, g.Id);
+                    }
+                    else
+                    {
+                        await DbService.UpsertGradeAsync(parentConn, g.Id, g.StudentId, g.Subject, g.Grade, g.Date, g.Teacher, false);
+                        if (grandparentConn != null) await DbService.UpsertGradeAsync(grandparentConn, g.Id, g.StudentId, g.Subject, g.Grade, g.Date, g.Teacher, false);
+                    }
+                    okGrades++;
+                }
+                await DbService.SetLastSyncAsync(childConn, DateTime.Now, syncId: 1);
+                await DbService.SetLastSyncAsync(parentConn, DateTime.Now, syncId: 1);
+                if (grandparentConn != null) await DbService.SetLastSyncAsync(grandparentConn, DateTime.Now, syncId: 1);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка SyncUpAsync: {ex.Message}");
+                throw;
+            }
         }
     }
 }

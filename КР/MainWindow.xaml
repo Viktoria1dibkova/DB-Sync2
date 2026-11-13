@@ -147,7 +147,7 @@
                              GroupName="LevelGroup" Foreground="{StaticResource PrimaryColor}"/>
                 <RadioButton x:Name="RadioDept" Content="Кафедра ПО" VerticalAlignment="Center" Margin="0,0,70,0" FontSize="16" Click="Level_Click"
                              GroupName="LevelGroup" Foreground="{StaticResource PrimaryColor}"/>
-                <Button Content="Синхронизировать" Style="{StaticResource SuccessButton}" Padding="20,10" FontSize="16" Click="Sync_Click"/> 
+                <Button x:Name ="BtnSync" Content="Синхронизировать" Style="{StaticResource SuccessButton}" Padding="20,10" FontSize="16" Click="Sync_Click"/> 
             </StackPanel>
         </Border>
 
@@ -277,11 +277,11 @@
                                      Width="180" Margin="0,0,10,0" Text="Б.ПИН.РИС.25.06"/>
                             <TextBox x:Name="TxtStudentYear" Style="{StaticResource ModernTextBox}" 
                                      Width="100" Margin="0,0,10,0" Text="2025"/>
-                            <ComboBox x:Name="CmbPrograms" Width="200" Margin="0,0,10,0" 
+                            <ComboBox x:Name="CmbPrograms" Width="240" Margin="0,0,10,0" 
                                       DisplayMemberPath="Профиль" SelectedValuePath="Id"/>
-                            <Button Content="Добавить студента" FontSize="16" Click="AddStudent_Click"
+                            <Button x:Name="BtnAddStudent" Content="Добавить студента" FontSize="16" Click="AddStudent_Click"
                                     Style="{StaticResource ModernButton}" Margin="0,0,10,0"/>
-                            <Button Content="Удалить" FontSize="16" Click="DeleteStudent_Click"
+                            <Button x:Name="BtnDeleteStudent" Content="Удалить" FontSize="16" Click="DeleteStudent_Click"
                                     Style="{StaticResource DeleteButton}"/>
                         </StackPanel>
                     </StackPanel>
@@ -311,9 +311,9 @@
                                      Width="80" Margin="0,0,10,0" Text="5"/>
                             <TextBox x:Name="TxtGradeTeacher" Style="{StaticResource ModernTextBox}" 
                                      Width="200" Margin="0,0,10,0" Text="Петров П.П."/>
-                            <Button Content="Поставить оценку" FontSize="16" Click="AddGrade_Click"
+                            <Button x:Name="BtnAddGrade" Content="Поставить оценку" FontSize="16" Click="AddGrade_Click"
                                     Style="{StaticResource ModernButton}" Margin="0,0,10,0"/>
-                            <Button Content="Удалить" FontSize="16" Click="DeleteGrade_Click"
+                            <Button x:Name="BtnDeleteGrade" Content="Удалить" FontSize="16" Click="DeleteGrade_Click"
                                     Style="{StaticResource DeleteButton}"/>
                         </StackPanel>
                     </StackPanel>
