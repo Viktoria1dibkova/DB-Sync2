@@ -500,8 +500,9 @@ namespace КР
                 }
                 else
                 {
-                    await SyncService.SyncUpAsync(CurrentConn, DbConfig.FacultyConn, DbConfig.UniversityConn);
+
                     await SyncService.SyncDownAsync(DbConfig.FacultyConn, CurrentConn);
+                    await SyncService.SyncUpAsync(CurrentConn, DbConfig.FacultyConn, DbConfig.UniversityConn);
                 }
 
                 await LoadAllDataAsync();

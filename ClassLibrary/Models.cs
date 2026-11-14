@@ -38,6 +38,7 @@ namespace ClassLibrary
             public string Code { get; set; }
             public string Profile { get; set; }
             public string DepartmentName { get; set; }
+            public string DisplayName => $"{Code} | {Profile}";
         }
 
         /// <summary>
