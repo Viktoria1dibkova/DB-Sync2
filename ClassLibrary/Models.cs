@@ -68,6 +68,7 @@ namespace ClassLibrary
             public string Subject { get; set; }
             public int Grade { get; set; }
             public bool IsDeleted { get; set; }
+            public int SourceLevel { get; set; }
             public string Teacher { get; set; }
         }
 

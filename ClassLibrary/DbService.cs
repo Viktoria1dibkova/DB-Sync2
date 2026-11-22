@@ -1,6 +1,7 @@
 ﻿
 using Npgsql;
 using NpgsqlTypes;
+using System.Diagnostics;
 using static ClassLibrary.Models;
 
 namespace ClassLibrary
@@ -198,7 +199,7 @@ namespace ClassLibrary
         /// <param name="date">дата</param>
         /// <param name="teacher">преподаватель</param>
         /// <returns></returns>
-        public static async Task AddGradeAsync(string conn, Guid studentId, string subject, int grade, DateTime date, string teacher)
+        public static async Task AddGradeAsync(string conn, Guid studentId, string subject, int grade, DateTime date, string teacher, int sourceLevel)
         {
             using var c = new NpgsqlConnection(conn);
             await c.OpenAsync();
@@ -209,6 +210,7 @@ namespace ClassLibrary
             var paramD = cmd.Parameters.AddWithValue("d", date);
             paramD.NpgsqlDbType = NpgsqlDbType.Date;
             cmd.Parameters.AddWithValue("t", teacher);
+            cmd.Parameters.AddWithValue("lvl", sourceLevel);
             await cmd.ExecuteNonQueryAsync();
         }
 
@@ -450,7 +452,7 @@ namespace ClassLibrary
             using var cmd = new NpgsqlCommand(SqlQueries.LoadGradesForSync, c);
             cmd.Parameters.AddWithValue("since", since);
             using var r = await cmd.ExecuteReaderAsync();
-            while (await r.ReadAsync()) list.Add(new GradeItem{Id = r.GetGuid(0), StudentId = r.GetGuid(1), Subject = r.GetString(2), Grade = r.GetInt32(3), Date = r.GetDateTime(4), Teacher = r.GetString(5), IsDeleted = r.GetBoolean(6)});
+            while (await r.ReadAsync()) list.Add(new GradeItem{Id = r.GetGuid(0), StudentId = r.GetGuid(1), Subject = r.GetString(2), Grade = r.GetInt32(3), Date = r.GetDateTime(4), Teacher = r.GetString(5), IsDeleted = r.GetBoolean(6), SourceLevel = r.GetInt32(7) });
             return list;
         }
 
@@ -581,7 +583,7 @@ namespace ClassLibrary
         /// <param name="teacher">преподаватель</param>
         /// <param name="isDeleted">флаг удаления</param>
         /// <returns></returns>
-        public static async Task UpsertGradeAsync(string conn, Guid id, Guid studentId, string subject, int grade, DateTime date, string teacher, bool isDeleted = false)
+        public static async Task UpsertGradeAsync(string conn, Guid id, Guid studentId, string subject, int grade, DateTime date, string teacher, bool isDeleted = false, int sourceLevel = 3)
         {
             using var c = new NpgsqlConnection(conn);
             await c.OpenAsync();
@@ -595,6 +597,7 @@ namespace ClassLibrary
             cmd.Parameters.AddWithValue("t", teacher);
             cmd.Parameters.AddWithValue("del", isDeleted);
             var paramU = cmd.Parameters.AddWithValue("u", DateTime.Now);
+            cmd.Parameters.AddWithValue("lvl", sourceLevel);
             paramU.NpgsqlDbType = NpgsqlDbType.Timestamp;
             await cmd.ExecuteNonQueryAsync();
         }
@@ -735,6 +738,26 @@ namespace ClassLibrary
             await cmd.ExecuteNonQueryAsync();
         }
 
-
+        /// <summary>
+        /// Ищет оценку по студенту и предмету (для обновления с сохранением UUID)
+        /// </summary>
+        /// <param name="conn">строка соединения</param>
+        /// <param name="studentId">ID студента</param>
+        /// <param name="subject">предмет</param>
+        /// <returns></returns>
+        public static async Task<GradeItem?> FindGradeByStudentAndSubjectAsync(string conn, Guid studentId, string subject)
+        {
+            using var c = new NpgsqlConnection(conn);
+            await c.OpenAsync();
+            using var cmd = new NpgsqlCommand(SqlQueries.FindGrade, c);
+            cmd.Parameters.AddWithValue("sid", studentId);
+            cmd.Parameters.AddWithValue("subj", subject);
+            using var r = await cmd.ExecuteReaderAsync();
+            if (await r.ReadAsync())
+            {
+                return new GradeItem { Id = r.GetGuid(0), StudentId = r.GetGuid(1), Subject = r.GetString(2), Grade = r.GetInt32(3), Date = r.GetDateTime(4), Teacher = r.GetString(5), IsDeleted = r.GetBoolean(6), SourceLevel = r.GetInt32(7)};
+            }
+            return null;
+        }
     }
 }

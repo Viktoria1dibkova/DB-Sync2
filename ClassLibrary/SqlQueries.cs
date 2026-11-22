@@ -47,6 +47,7 @@ namespace ClassLibrary
                                      date DATE NOT NULL DEFAULT CURRENT_DATE,
                                      teacher VARCHAR(255)  NOT NULL,
                                      is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+                                     source_level INTEGER NOT NULL DEFAULT 3,
                                      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
                                      updated_at TIMESTAMP NOT NULL DEFAULT NOW());
             
@@ -125,7 +126,8 @@ namespace ClassLibrary
         /// <summary>
         /// Вставка оценки
         /// </summary>
-        public const string InsertGrade = "INSERT INTO grades (student_id, subject, grade, date, teacher) VALUES(@sid, @s, @g, @d, @t)";
+        public const string InsertGrade = @"INSERT INTO grades (id, student_id, subject, grade, date, teacher, source_level, updated_at)
+                                          VALUES (gen_random_uuid(), @sid, @s, @g, @d, @t, @lvl, NOW())";
 
         /// <summary>
         /// Вставка приказа
@@ -171,9 +173,9 @@ namespace ClassLibrary
                                             VALUES (@id, @pid, @fn, @gn, @ey, @del, @u) ON CONFLICT (id) DO UPDATE SET program_id = EXCLUDED.program_id, full_name = EXCLUDED.full_name,
                                             group_number = EXCLUDED.group_number, enrollment_year = EXCLUDED.enrollment_year, is_deleted = EXCLUDED.is_deleted, updated_at = EXCLUDED.updated_at";
 
-        public const string UpsertGrade = @"INSERT INTO grades (id, student_id, subject, grade, date, teacher, is_deleted, updated_at)
-                                          VALUES (@id, @sid, @s, @g, @d, @t, @del, @u) ON CONFLICT (id) DO UPDATE SET student_id = EXCLUDED.student_id, subject = EXCLUDED.subject, grade = EXCLUDED.grade,
-                                          date = EXCLUDED.date, teacher = EXCLUDED.teacher, is_deleted = EXCLUDED.is_deleted, updated_at = EXCLUDED.updated_at";
+        public const string UpsertGrade = @"INSERT INTO grades (id, student_id, subject, grade, date, teacher, is_deleted, source_level, updated_at) VALUES (@id, @sid, @s, @g, @d, @t, @del, @lvl, @u) 
+                                          ON CONFLICT (id) DO UPDATE SET student_id = EXCLUDED.student_id, subject = EXCLUDED.subject, grade = EXCLUDED.grade, date = EXCLUDED.date, teacher = EXCLUDED.teacher,
+                                          is_deleted = EXCLUDED.is_deleted, source_level = EXCLUDED.source_level, updated_at = EXCLUDED.updated_at WHERE grades.source_level >= EXCLUDED.source_level";
 
         public const string UpsertOrder = @"INSERT INTO orders (id, text, date, scope, status, updated_at) VALUES (@id, @t, @d, @sc, @st, @u)
                                           ON CONFLICT (id) DO UPDATE SET text = EXCLUDED.text, date = EXCLUDED.date, scope = EXCLUDED.scope, 
@@ -202,7 +204,7 @@ namespace ClassLibrary
         /// Методы для получения новых данных        
         /// </summary>
         public const string LoadStudentsForSync = @"SELECT id, program_id, full_name, group_number, enrollment_year, is_deleted FROM students WHERE updated_at >= @since";
-        public const string LoadGradesForSync = @"SELECT id, student_id, subject, grade, date, teacher, is_deleted FROM grades WHERE updated_at >= @since";
+        public const string LoadGradesForSync = @"SELECT id, student_id, subject, grade, date, teacher, is_deleted, source_level FROM grades WHERE updated_at >= @since";
 
         /// <summary>
         /// Методы мягкого и физического удаления
@@ -232,5 +234,8 @@ namespace ClassLibrary
         /// </summary>
         public const string DeleteProgramsByDept = "DELETE FROM programs WHERE dept_id = @did";
         public const string DeleteDepartmentById = "DELETE FROM departments WHERE id = @id";
+
+        public const string FindGrade = @"SELECT id, student_id, subject, grade, date, teacher, is_deleted, source_level
+                                        FROM grades WHERE student_id = @sid AND LOWER(subject) = LOWER(@subj) AND is_deleted = FALSE LIMIT 1";
     }
 }

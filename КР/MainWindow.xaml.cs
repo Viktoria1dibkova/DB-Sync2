@@ -1,4 +1,5 @@
 ﻿using ClassLibrary;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using static ClassLibrary.Models;
@@ -96,11 +97,11 @@ namespace КР
             TxtStudentGroup.Visibility = isUniversity || isDept ? Visibility.Hidden : Visibility.Visible;
             TxtStudentYear.Visibility = isUniversity || isDept ? Visibility.Hidden : Visibility.Visible;
             CmbPrograms.Visibility = isUniversity || isDept? Visibility.Hidden : Visibility.Visible;
-            DateGrade.Visibility = isUniversity || isFaculty ? Visibility.Hidden : Visibility.Visible;
-            CmbStudents.Visibility = isUniversity || isFaculty ? Visibility.Hidden : Visibility.Visible;
-            TxtGradeTeacher.Visibility = isUniversity || isFaculty ? Visibility.Hidden : Visibility.Visible;
-            TxtGradeValue.Visibility = isUniversity || isFaculty ? Visibility.Hidden : Visibility.Visible;
-            TxtGradeSubject.Visibility = isUniversity || isFaculty ? Visibility.Hidden : Visibility.Visible;
+            DateGrade.Visibility = isUniversity ? Visibility.Hidden : Visibility.Visible;
+            CmbStudents.Visibility = isUniversity ? Visibility.Hidden : Visibility.Visible;
+            TxtGradeTeacher.Visibility = isUniversity ? Visibility.Hidden : Visibility.Visible;
+            TxtGradeValue.Visibility = isUniversity ? Visibility.Hidden : Visibility.Visible;
+            TxtGradeSubject.Visibility = isUniversity ? Visibility.Hidden : Visibility.Visible;
 
             if (isDept)
             {
@@ -271,10 +272,52 @@ namespace КР
                 StatusText.Text = "Выберите студента из списка!";
                 return;
             }
-            await DbService.AddGradeAsync(CurrentConn, s.Id, TxtGradeSubject.Text, int.Parse(TxtGradeValue.Text), DateGrade.SelectedDate ?? DateTime.Now, TxtGradeTeacher.Text);
-            await LoadAllDataAsync();
-        }
 
+            string subject = TxtGradeSubject.Text.Trim();
+            if (string.IsNullOrWhiteSpace(subject))
+            {
+                StatusText.Text = "Введите название предмета!";
+                return;
+            }
+
+            int grade;
+            if (!int.TryParse(TxtGradeValue.Text, out grade) || grade < 2 || grade > 5)
+            {
+                StatusText.Text = "Оценка должна быть от 2 до 5!";
+                return;
+            }
+
+            int sourceLevel = CurrentLevel == "Факультет ИТ" ? 2 : 3;
+            DateTime date = DateGrade.SelectedDate ?? DateTime.Now;
+            string teacher = TxtGradeTeacher.Text.Trim();
+
+            try
+            {
+                if (sourceLevel == 2)
+                {
+                    var existing = await DbService.FindGradeByStudentAndSubjectAsync(CurrentConn, s.Id, subject);
+
+                    if (existing != null)
+                    {
+                        await DbService.UpsertGradeAsync(CurrentConn, existing.Id, s.Id, subject, grade, date, teacher, isDeleted: false, sourceLevel: 2);
+                    }
+                    else
+                    {
+                        await DbService.AddGradeAsync(CurrentConn, s.Id, subject, grade, date, teacher, sourceLevel);
+                    }
+                }
+                else
+                {
+                    await DbService.AddGradeAsync(CurrentConn, s.Id, subject, grade, date, teacher, sourceLevel);
+                }
+
+                await LoadAllDataAsync();
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Ошибка: " + ex.Message;
+            }
+        }
         /// <summary>
         /// Добавление приказа
         /// </summary>

@@ -44,6 +44,15 @@ namespace ClassLibrary
                     else await DbService.UpsertStudentAsync( childConn, s.Id, s.ProgramId, s.FullName, s.GroupNumber, s.EnrollmentYear, isDeleted: false);
                     okStudents++;
                 }
+                var parentGrades = await DbService.LoadGradesForSyncAsync(parentConn, lastSyncDown);
+                int okGradesDown = 0;
+
+                foreach (var g in parentGrades)
+                {
+                    if (g.IsDeleted) await DbService.HardDeleteGradeAsync(childConn, g.Id);
+                    else await DbService.UpsertGradeAsync(childConn, g.Id, g.StudentId, g.Subject, g.Grade, g.Date, g.Teacher, isDeleted: false, sourceLevel: g.SourceLevel);
+                    okGradesDown++;
+                }
 
                 var orders = await DbService.LoadOrdersForSyncAsync(parentConn);
                 await DbService.DeleteOrphanedOrdersAsync(childConn, orders.Select(o => o.Id).ToList());
